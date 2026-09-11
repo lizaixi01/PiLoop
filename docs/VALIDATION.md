@@ -9,6 +9,8 @@
 - 独立 npm prefix 安装后未包含 React、Express、Playwright、Vite；版本、帮助和无凭据的真实 Pi 运行时初始化/退出通过。
 - Windows 首次冷启动在 30 秒限制内超时，120 秒限制下通过；尚未定位耗时原因，不宣称启动性能改善。
 - 原生更新缓存、版本比较及配置保留测试通过。
+- GitHub main 与 v0.1.2 tag 的 CI 均通过，包含 Ubuntu 独立安装检查。
+- Windows 独立 prefix 从 0.1.1 运行真实 `piloop update` 升至 GitHub Release 0.1.2，测试 settings.json 保留，Playwright 已移除；npm 报告移除 74 个包。
 
 以下为早期原型的历史验证，不能据此认为默认 CLI 具有浏览器检查或 /example、/check。
 
@@ -58,3 +60,5 @@
 - 未验证任意框架项目、远程资源、真实动效质量、生成式方案 Widget、Dream 或长会话 Compaction 增益。
 
 下一次真实任务需要同时保留原要求、反馈、召回、修改、检查、人工纠正和实际成本。比较时给简单规范基线相同的模型、浏览器能力、任务起点和预算。
+
+- 0.1.2 安装包在 Windows PTY 中实际显示 Pi 原生输入框、状态栏及命令提示，使用 /quit 正常退出（退出码 0）。
