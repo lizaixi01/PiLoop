@@ -127,6 +127,9 @@ test(
         while (store.task(id).status === "running" && Date.now() < deadline)
           await new Promise((resolve) => setTimeout(resolve, 50));
         assert.equal(store.task(id).status, "ready", store.task(id).error);
+        // Ready is visible before queued persistence finishes. Drain it before
+        // another run or teardown can remove the temporary data directory.
+        await store.save();
       };
       const first = await runner.start(
         p.id,
