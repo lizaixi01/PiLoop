@@ -5,8 +5,22 @@ import os from "node:os";
 import path from "node:path";
 import http from "node:http";
 import { ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
-import { nativeRuntimeFactory } from "../server/tui.js";
+import { nativeRuntimeFactory, prepareInteractiveViewport } from "../server/tui.js";
 import { assessPreference, combinedMemory } from "../server/native-memory.js";
+
+test("Windows interactive startup normalizes viewport without erasing scrollback or changing input modes", () => {
+  let output = "";
+  const terminal = { isTTY: true, write: ((text: string) => { output += text; return true; }) as NodeJS.WriteStream["write"] };
+  prepareInteractiveViewport(terminal, "win32");
+  assert.match(output, /\x1b\[r/);
+  assert.match(output, /\x1b\[\?6l/);
+  assert.ok(output.endsWith("\x1b[2J\x1b[H"));
+  assert.ok(!output.includes("\x1b[3J"));
+  output = "";
+  prepareInteractiveViewport(terminal, "linux");
+  prepareInteractiveViewport({ ...terminal, isTTY: false }, "win32");
+  assert.equal(output, "");
+});
 
 test(
   "native Pi greets without harness work and writes in the actual cwd when asked",

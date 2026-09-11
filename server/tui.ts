@@ -146,6 +146,17 @@ export const nativeRuntimeFactory =
     };
   };
 
+/** Pi's main-screen renderer starts with a clean-screen cursor origin. */
+export function prepareInteractiveViewport(
+  output: Pick<NodeJS.WriteStream, "isTTY" | "write"> = process.stdout,
+  platform: NodeJS.Platform = process.platform,
+) {
+  if (platform !== "win32" || !output.isTTY) return;
+  // Reset inherited margins/origin and home the viewport before the first frame.
+  // Do not use CSI 3J (erase scrollback), change input protocols, or replace Pi's UI.
+  output.write("\x1b[0m\x1b[r\x1b[?6l\x1b[2J\x1b[H");
+}
+
 export async function runNativeTui(
   modelRuntime: ModelRuntime,
   agentDir: string,
@@ -162,9 +173,10 @@ export async function runNativeTui(
       ),
     },
   );
-  if (process.stdin.isTTY && process.stdout.isTTY)
+  if (process.stdin.isTTY && process.stdout.isTTY) {
+    prepareInteractiveViewport();
     await new InteractiveMode(host).run();
-  else {
+  } else {
     let input = "";
     for await (const chunk of process.stdin) input += chunk;
     try {
