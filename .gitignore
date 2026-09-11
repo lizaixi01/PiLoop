@@ -1,0 +1,18 @@
+node_modules/
+dist/
+lib/
+.piloop/
+.piloop-*/
+.npm-cache/
+.playwright-cli/
+output/
+.env
+.env.*
+!.env.example
+release/
+# Private, machine-specific dogfood transcripts and orchestration helpers.
+scripts/capture-verilog-case.mjs
+scripts/dogfood-verilog.mjs
+scripts/prepare-verilog-prompts.py
+scripts/verilog-model-bridge.mjs
+docs/experiments/verilog-dogfood.md
