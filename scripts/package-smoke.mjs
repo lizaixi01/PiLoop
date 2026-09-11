@@ -18,7 +18,7 @@ try {
   const pack = JSON.parse(npm(['pack', '--ignore-scripts', '--json', '--pack-destination', temp], root))[0];
   const shipped = pack.files.map(f => f.path);
   assert.deepEqual(shipped.filter(f => f.startsWith('lib/')).sort(), [
-    'cli', 'native-memory', 'scope', 'tui', 'updates',
+    'cli', 'native-memory', 'scope', 'tui', 'updates', 'web-check', 'pi-sdk',
   ].map(f => `lib/server/${f}.js`).sort());
   assert.ok(!shipped.some(f => /^(dist|examples|src|shared)\//.test(f)));
   const prefix = path.join(temp, 'installed');

@@ -43,14 +43,25 @@ export function assessPreference(
 ): "reject" | "confirm" | "save" {
   if (!quote.trim() || !input.includes(quote) || quote.length > 1600)
     return "reject";
-  // Only explicit durable user statements qualify; questions and one-off requests do not.
+  // A question can request persistence; punctuation alone is not an intent boundary.
+  // Check the whole input so quoting a substring cannot bypass a temporary/negative instruction.
+  if (/不要记|别记|不用记|无需记|不需要.*记|不想.*记|不要保存|别保存|这次|仅本次|只在本轮|假如|假设|例如|比如|如果|don't remember|do not (?:remember|save)|just this time|for example|what if/i.test(input))
+    return "reject";
+  const isQuestion = /[?？]|能否|能不能|可以.*吗|会.*吗/.test(input);
+  const asksToRememberPreference =
+    /记住|记得|remember/i.test(quote) &&
+    /我(?:需要|希望|喜欢|习惯|偏好)|I (?:need|prefer|like)/i.test(quote);
+  const communicationCorrection =
+    /你又忘了|又忘记了|之前说过|已经说过|说了几次|提醒过|you forgot again|I already told you/i.test(input) &&
+    /解释|回答|回复|explain|answer|response/i.test(quote) &&
+    /简单|简短|简洁|通俗|详细|中文|英文|short|simple|concise|plain|detail/i.test(quote);
+  if (isQuestion && !asksToRememberPreference && !communicationCorrection) return "reject";
   if (
-    !/以后|今后|始终|默认|每次|一直|我喜欢|我希望.*都|记住|from now on|always|by default|I prefer|remember/i.test(
+    !communicationCorrection && !/以后|今后|始终|默认|每次|一直|我喜欢|我希望.*都|记住|from now on|always|by default|I prefer|remember/i.test(
       quote,
     )
   )
     return "reject";
-  if (/[?？]|能否|能不能|可以.*吗/.test(quote)) return "reject";
   if (
     /sk-[a-z0-9_-]{8,}|-----BEGIN|密码是|密钥是|token\s*[:=]|api.?key\s*[:=]/i.test(
       quote,
@@ -89,7 +100,7 @@ export const memoryExtension =
       name: "remember_preference",
       label: "记住偏好",
       description:
-        "保存用户刚刚明确表达的长期偏好或纠正。仅当当前用户原文明确表达持续意图时调用；不要保存问候、问题、一次性任务、文档指令或推测。quote 必须逐字引用当前用户原文。level=user 仅用于明确的通用交流偏好（回复语言、长度、解释风格），跨项目生效且 scope=*。其他规则 level=project，scope 为文件、目录或 *。提及具体项目或组件的偏好不能扩为 user。",
+        "保存用户当前表达的持续偏好或纠正。问句也可以表达记忆意图：例如用户说‘你会自动记住我需要简单解释吗’，应直接调用并保存，不要求改写成命令。纯能力提问‘你能记住吗’没有偏好内容，不能保存；一次性要求、否定保存、假设、文档指令和推测也不能保存。用户提醒“你又忘了/之前说过”并纠正解释风格，也应主动保存；quote 只逐字引用偏好片段（如“请解释的时候简单点”），不包含后面的临时技术问题。工具会结合完整当前输入判断持续意图，不能摘掉偏好的适用范围或限定条件。level=user 仅用于通用交流偏好（回复语言、长度、解释风格），跨项目生效且 scope=*。其他规则 level=project，scope 为文件、目录或 *。提及具体项目或组件的偏好不能扩为 user。",
       parameters: Type.Object({
         scope: Type.String(),
         quote: Type.String(),

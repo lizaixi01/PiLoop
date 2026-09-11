@@ -23,15 +23,15 @@ export async function checkUpdate(dataDir: string, current: string, request = fe
   try {
     const saved = JSON.parse(await fs.readFile(cache, "utf8")) as {checkedAt:number;latest?:string};
     previous = saved.latest;
-    if (now >= saved.checkedAt && now - saved.checkedAt < 86400000)
+    if (now >= saved.checkedAt && now - saved.checkedAt < 3600000)
       return saved.latest && isNewerVersion(saved.latest, current) ? saved.latest : undefined;
   } catch { /* Missing or damaged cache: retry a bounded public request. */ }
-  await fs.mkdir(dataDir, {recursive:true});
-  await fs.writeFile(cache, JSON.stringify({checkedAt:now,latest:previous}));
-  const response = await request(RELEASE_API, {
+  // Cache successful checks only: an offline launch must not suppress the next online check.
+  let response: Response;
+  try { response = await request(RELEASE_API, {
     headers: {Accept:"application/vnd.github+json", "User-Agent":"PiLoop"}, signal:AbortSignal.timeout(2000),
-  });
-  if (!response.ok) return undefined;
+  }); } catch { return previous && isNewerVersion(previous,current) ? previous : undefined; }
+  if (!response.ok) return previous && isNewerVersion(previous,current) ? previous : undefined;
   const release = await response.json() as {tag_name?:unknown;assets?:{name:string}[]};
   if (typeof release.tag_name !== "string" || !/^v?\d+\.\d+\.\d+$/.test(release.tag_name)
     || !Array.isArray(release.assets) || !release.assets.some(a=>a.name==="piloop.tgz")) return undefined;
@@ -40,9 +40,14 @@ export async function checkUpdate(dataDir: string, current: string, request = fe
   return isNewerVersion(release.tag_name, current) ? release.tag_name : undefined;
 }
 export const updateExtension = (agentDir: string): ExtensionFactory => pi => {
+  let announced = false;
   pi.on("session_start", (_event, ctx) => {
-    if (!ctx.hasUI || process.env.PILOOP_NO_UPDATE_CHECK === "1") return;
-    void version().then(v=>checkUpdate(path.dirname(agentDir),v)).then(latest=>{
+    if (!ctx.hasUI) return;
+    void version().then(v=>{
+      if (!announced) { ctx.ui.notify(`PiLoop v${v} · powered by Pi`, "info"); announced = true; }
+      if (process.env.PILOOP_NO_UPDATE_CHECK === "1") return undefined;
+      return checkUpdate(path.dirname(agentDir),v);
+    }).then(latest=>{
       if (latest) ctx.ui.notify(`PiLoop ${latest} 可用 · 退出后运行 piloop update`, "info");
     }).catch(()=>{}); // Offline must not prevent normal CLI use.
   });

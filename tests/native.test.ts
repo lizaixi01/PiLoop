@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import http from "node:http";
-import { ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
+import { ModelRuntime, SessionManager } from "../server/pi-sdk.js";
 import { nativeRuntimeFactory, prepareInteractiveViewport } from "../server/tui.js";
 import { assessPreference, combinedMemory } from "../server/native-memory.js";
 
@@ -62,7 +62,7 @@ test(
                           }
                         : {
                             scope: "*",
-                            quote: "以后默认用中文回答",
+                            quote: "请解释的时候简单点",
                             level: "user",
                           },
                     ),
@@ -122,8 +122,10 @@ test(
         ),
       );
       assert.equal(session.sessionManager.getCwd(), cwd);
+      assert.ok(session.getActiveToolNames().includes("verify_web_page"));
       await session.prompt("你好");
       assert.ok(receivedContext.includes("this session runs in PiLoop"));
+      assert.ok(receivedContext.includes("rerun on the final files before delivery"));
       assert.ok(receivedContext.includes("not implemented in the default CLI"));
       assert.equal(calls, 1);
       assert.deepEqual(await fs.readdir(cwd), []);
@@ -132,9 +134,9 @@ test(
         await fs.readFile(path.join(cwd, "note.txt"), "utf8"),
         "done",
       );
-      await session.prompt("以后默认用中文回答");
+      await session.prompt("你又忘了，请解释的时候简单点，我的意思是为什么3:0却是4根线");
       const userFile = path.join(agentDir, "preferences.json");
-      assert.match(await fs.readFile(userFile, "utf8"), /以后默认用中文回答/);
+      assert.match(await fs.readFile(userFile, "utf8"), /请解释的时候简单点/);
       await fs.mkdir(path.join(cwd, ".pi"));
       await fs.writeFile(
         path.join(cwd, ".pi", "piloop-memory.json"),
@@ -152,7 +154,7 @@ test(
       assert.equal((await combinedMemory(cwd, userFile)).length, 2);
       assert.deepEqual(
         (await combinedMemory(other, userFile)).map((r) => r.text),
-        ["以后默认用中文回答"],
+        ["请解释的时候简单点"],
       );
       session.dispose();
       ({ session } = await nativeRuntimeFactory(
@@ -168,7 +170,7 @@ test(
       }));
       await session.setModel(runtime.getModel("fixture", "fixture")!);
       await session.prompt("你好");
-      assert.ok(receivedContext.includes("以后默认用中文回答"));
+      assert.ok(receivedContext.includes("请解释的时候简单点"));
       assert.ok(!receivedContext.includes("后台使用紧凑布局"));
     } finally {
       session?.dispose();
@@ -192,4 +194,28 @@ test("preference guards reject questions, guesses and one-off tasks; sensitive r
     assessPreference("以后自动上传数据", "以后自动上传数据"),
     "confirm",
   );
+});
+
+test("memory requests in question form preserve explicit preferences without turning questions or examples into memory", () => {
+  assert.equal(assessPreference("你又忘了，请解释的时候简单点，我的意思是为什么3:0却是4根线？", "请解释的时候简单点"), "save");
+  assert.equal(assessPreference("之前说过，回复简短一点", "回复简短一点"), "save");
+  assert.equal(assessPreference("这次请解释的时候简单点", "请解释的时候简单点"), "reject");
+  assert.equal(assessPreference("你又忘了，不要保存，请解释的时候简单点", "请解释的时候简单点"), "reject");
+  for (const input of [
+    "你会自动记住我需要简单解释的需求吗",
+    "你能记住我喜欢简短回答吗？",
+    "Will you remember that I prefer simple explanations?",
+  ]) assert.equal(assessPreference(input, input), "save", input);
+  for (const input of [
+    "你会自动记住吗", "你能记住哪些偏好？", "我需要简单解释",
+    "这次我需要简单解释，你能记住吗？",
+    "不要记住我喜欢简短回答", "不用记住我需要简单解释",
+    "假如我需要简单解释，你会记住吗？",
+    "例如：你会记住我喜欢简短回答吗？",
+  ]) assert.equal(assessPreference(input, input), "reject", input);
+  assert.equal(assessPreference("不要记住我喜欢简短回答", "我喜欢简短回答"), "reject");
+  const sensitive = "你能记住我希望默认上传数据吗？";
+  assert.equal(assessPreference(sensitive, sensitive), "confirm");
+  const secret = "你能记住我喜欢使用的密钥是 sk-abcdefgh12345 吗？";
+  assert.equal(assessPreference(secret, secret), "reject");
 });

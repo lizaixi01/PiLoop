@@ -1,6 +1,6 @@
 {
   "name": "piloop",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "MIT",
   "engines": {
     "node": ">=22.19.0"
@@ -21,6 +21,8 @@
     "lib/server/native-memory.js",
     "lib/server/scope.js",
     "lib/server/updates.js",
+    "lib/server/web-check.js",
+    "lib/server/pi-sdk.js",
     "README.md",
     "LICENSE"
   ],

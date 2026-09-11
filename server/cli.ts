@@ -1,5 +1,5 @@
 import path from "node:path";
-import { ModelRuntime } from "@earendil-works/pi-coding-agent";
+import { ModelRuntime } from "./pi-sdk.js";
 import { runNativeTui } from "./tui.js";
 const agentDir = path.resolve(
   process.env.PILOOP_DATA_DIR || ".piloop",

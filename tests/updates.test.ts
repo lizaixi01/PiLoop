@@ -11,7 +11,7 @@ test("stable release comparison rejects downgrade and malformed tags", () => {
   for (const tag of ["v0.1.0","0.0.9","v0.2.0-beta","garbage"])
     assert.equal(isNewerVersion(tag,"0.1.0"),false);
 });
-test("update checks cache a usable release and recheck after one day", async () => {
+test("update checks cache a usable release for an hour; offline launch does not postpone retries", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(),"piloop-update-"));
   let calls = 0;
   const request: typeof fetch = async input => {
@@ -23,8 +23,9 @@ test("update checks cache a usable release and recheck after one day", async () 
     assert.equal(await checkUpdate(dir,"0.1.0",request,2000),"v0.2.0");
     assert.equal(calls,1);
     assert.equal(await checkUpdate(dir,"0.2.0",request,2000),undefined);
-    await checkUpdate(dir,"0.1.0",request,86401001);assert.equal(calls,2);
-    await assert.rejects(checkUpdate(dir,"0.1.0",async()=>{throw new Error("offline");},172802000));
+    await checkUpdate(dir,"0.1.0",request,3601001);assert.equal(calls,2);
+    assert.equal(await checkUpdate(dir,"0.1.0",async()=>{throw new Error("offline");},7202000),"v0.2.0");
+    await checkUpdate(dir,"0.1.0",request,7202001);assert.equal(calls,3);
   } finally { await fs.rm(dir,{recursive:true,force:true}); }
 });
 test("configuration survives moving installations; existing user data is not overwritten", async () => {
