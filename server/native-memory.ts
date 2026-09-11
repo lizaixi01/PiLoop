@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { Type } from "@sinclair/typebox";
 import type { ExtensionFactory } from "@earendil-works/pi-coding-agent";
-import { scopePath } from "./store.js";
+import { scopePath } from "./scope.js";
 
 const schema = z.array(
   z.object({

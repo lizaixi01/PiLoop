@@ -2,7 +2,7 @@
 
 安装包包含编译产物，用户安装时不需要 TypeScript、Git 或构建源码。GitHub Release 的附件固定叫 `piloop.tgz`，启动更新提示要求 release tag 为 `vX.Y.Z` 且包含该附件。
 
-1. 更新 package.json 和 package-lock.json 的版本，运行 `npm test`、`npm run build`。
+1. 更新 package.json 和 package-lock.json 的版本，运行 `npm test`、`npm run build`、`node scripts/package-smoke.mjs`。旧网页实验另用 `npm run build:web` 验证，不属于 CLI 构建产物。
 2. 在已存在的 release 目录运行 `npm pack --ignore-scripts --pack-destination release`，将生成包重命名为 `piloop.tgz`。
 3. 检查包清单不含账号、会话、.env、实验原始数据；在独立 npm prefix 中安装，核实版本、帮助和启动。
 4. 提交代码，创建对应版本 tag 并推送。

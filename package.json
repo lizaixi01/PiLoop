@@ -1,9 +1,14 @@
 {
   "name": "piloop",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
-  "engines": { "node": ">=22.12.0" },
-  "repository": { "type": "git", "url": "https://github.com/lizaixi01/PiLoop.git" },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lizaixi01/PiLoop.git"
+  },
   "private": true,
   "type": "module",
   "bin": {
@@ -11,31 +16,29 @@
   },
   "files": [
     "bin",
-    "lib",
-    "dist",
-    "examples",
+    "lib/server/cli.js",
+    "lib/server/tui.js",
+    "lib/server/native-memory.js",
+    "lib/server/scope.js",
+    "lib/server/updates.js",
     "README.md",
     "LICENSE"
   ],
-  "description": "A local Pi-powered coding agent that carries scoped feedback into the next change.",
+  "description": "Pi-native CLI with proactive execution guidance and scoped preference memory.",
   "scripts": {
     "dev": "tsx --env-file-if-exists=.env server/index.ts --dev",
-    "build": "tsc --noEmit && tsc -p tsconfig.server.json && vite build",
+    "build": "tsc --noEmit && tsc -p tsconfig.server.json",
     "prepack": "npm run build",
     "start": "tsx --env-file-if-exists=.env server/cli.ts",
     "web": "tsx --env-file-if-exists=.env server/index.ts",
     "test": "tsx --test tests/*.test.ts",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "build:web": "vite build"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.85.1",
     "@earendil-works/pi-tui": "^0.85.1",
     "@sinclair/typebox": "^0.34.41",
-    "express": "^5.1.0",
-    "lucide-react": "^0.468.0",
-    "playwright": "^1.55.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
     "zod": "^4.1.0"
   },
   "devDependencies": {
@@ -46,6 +49,11 @@
     "@vitejs/plugin-react": "^5.0.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
-    "vite": "^7.1.0"
+    "vite": "^7.1.0",
+    "express": "^5.1.0",
+    "lucide-react": "^0.468.0",
+    "playwright": "^1.55.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   }
 }

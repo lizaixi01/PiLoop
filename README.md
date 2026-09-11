@@ -8,7 +8,7 @@
 
 ## 安装
 
-需要 [Node.js](https://nodejs.org/) 22.12 或更新版本（包含 npm）。
+需要 [Node.js](https://nodejs.org/) 22.19 或更新版本（包含 npm）。
 
 ```sh
 npm install -g https://github.com/lizaixi01/PiLoop/releases/latest/download/piloop.tgz
@@ -62,7 +62,7 @@ npm run build
 npm link
 ```
 
-修改后运行 `npm test` 和 `npm run build`，重启 PiLoop。旧网页原型只作为独立开发实验保留在 `npm run web`，不参与默认 CLI。
+修改后运行 `npm test` 和 `npm run build`，重启 PiLoop。旧网页原型仅供源码开发实验：`npm run build:web` 后运行 `npm run web`，或使用 `npm run dev`。网页、浏览器及 React/Express/Playwright 依赖均不进入 CLI 发布包的生产依赖；普通用户无需安装浏览器。
 
 ## 致谢与许可
 

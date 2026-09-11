@@ -15,4 +15,5 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm test
       - run: npm run build
-      - run: npm pack --ignore-scripts
+      - run: npm run build:web
+      - run: node scripts/package-smoke.mjs

@@ -1,3 +1,5 @@
+import { scopePath } from "./scope.js";
+export { scopePath } from "./scope.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { randomUUID, createHash } from "node:crypto";
@@ -45,18 +47,6 @@ export function within(root: string, input: string) {
   )
     throw new Error("路径必须位于项目副本中");
   return absolute;
-}
-export function scopePath(value: string) {
-  const normalized = value.trim().replaceAll("\\", "/").replace(/^\.\//, "");
-  if (normalized === "*") return normalized;
-  if (
-    !normalized ||
-    normalized.startsWith("/") ||
-    normalized.includes(":") ||
-    normalized.split("/").some((x) => x === ".." || x === "." || !x)
-  )
-    throw new Error("范围应是项目内的文件或目录，例如 index.html、styles 或 *");
-  return normalized;
 }
 export function recall(
   feedback: Feedback[],
