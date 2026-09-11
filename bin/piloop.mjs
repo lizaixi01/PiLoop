@@ -11,6 +11,9 @@ if (args.includes("--help") || args.includes("-h")) {
 } else if (args.includes("--version") || args.includes("-v")) {
   console.log(JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")).version);
 } else if (args.length === 1 && args[0] === "update") {
+  if (existsSync(path.join(root, ".env"))) process.loadEnvFile(path.join(root, ".env"));
+  // Preserve legacy local data even when updating before the first normal launch.
+  resolveDataDir(root, process.env.PILOOP_DATA_DIR);
   const { installUpdate } = await import("../lib/server/updates.js");
   process.exitCode = await installUpdate();
 } else {
